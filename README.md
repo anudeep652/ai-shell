@@ -17,7 +17,7 @@
 <p>
 
 <p align="center">
-   Inspired by the <a href="https://githubnext.com/projects/copilot-cli">Github Copilot X CLI</a>, but open source for everyone.
+   Inspired by the <a href="https://githubnext.com/projects/copilot-cli">GitHub Copilot X CLI</a>, but open source for everyone.
 </p>
 
 <br>
@@ -41,7 +41,7 @@
 3. Set the key so ai-shell can use it:
 
    ```sh
-   ai-shell config set OPENAI_KEY=<your token>
+   ai config set OPENAI_KEY=<your token>
    ```
 
    This will create a `.ai-shell` file in your home directory.
@@ -84,6 +84,35 @@ Note that some shells handle certain characters like the `?` or `*` or things th
 ai 'what is my ip address'
 ```
 
+### Chat mode
+
+![Chat demo](https://user-images.githubusercontent.com/844291/232889699-e13fb3fe-1659-4583-80ee-6c58d1bcbd06.gif)
+
+```bash
+ai chat
+```
+
+With this mode, you can engage in a conversation with the AI and receive helpful responses in a natural, conversational manner directly through the CLI:
+
+```sh
+┌  Starting new conversation
+│
+◇  You:
+│  how do I serve a redirect in express
+│
+◇  AI Shell:
+
+In Express, you can use the `redirect()` method to serve a redirect. The `redirect()` method takes one argument, which is the URL that you want to redirect to.
+
+Here's an example:
+
+\`\`\`js
+app.get('/oldurl', (req, res) => {
+  res.redirect('/newurl');
+});
+\`\`\`
+```
+
 ### Silent mode (skip explanations)
 
 You can disable and skip the explanation section by using the flag `-s` or `--silent`
@@ -95,7 +124,66 @@ ai -s list all log files
 or save the option as a preference using this command:
 
 ```bash
-ai-shell config set SILENT_MODE=true
+ai config set SILENT_MODE=true
+```
+
+### Custom API endpoint
+
+You can custom OpenAI API endpoint to set OPENAI_API_ENDPOINT（default: `https://api.openai.com/v1`）
+
+```sh
+ai config set OPENAI_API_ENDPOINT=<your proxy endpoint>
+```
+
+### Set Language
+
+![Language UI](https://user-images.githubusercontent.com/1784873/235330029-0a3b394c-d797-41d6-8717-9a6b487f1ae8.gif)
+
+The AI Shell's default language is English, but you can easily switch to your preferred language by using the corresponding language keys, as shown below:
+
+| Language            | Key     |
+| ------------------- | ------- |
+| English             | en      |
+| Simplified Chinese  | zh-Hans |
+| Traditional Chinese | zh-Hant |
+| Spanish             | es      |
+| Japanese            | jp      |
+| Korean              | ko      |
+| French              | fr      |
+| German              | de      |
+| Russian             | ru      |
+| Ukrainian           | uk      |
+| Vietnamese          | vi      |
+| Arabic              | ar      |
+| Portuguese          | pt      |
+
+For instance, if you want to switch to Simplified Chinese, you can do so by setting the LANGUAGE value to zh-Hans:
+
+```sh
+ai config set LANGUAGE=zh-Hans
+```
+
+This will set your language to Simplified Chinese.
+
+### Config UI
+
+To use a more visual interface to view and set config options you can type:
+
+```bash
+ai config
+```
+
+To get an interactive UI like below:
+
+```bash
+◆  Set config:
+│  ○ OpenAI Key
+│  ○ OpenAI API Endpoint
+│  ○ Silent Mode
+│  ● Model (gpt-3.5-turbo)
+│  ○ Language
+│  ○ Cancel
+└
 ```
 
 ### Upgrading
@@ -103,13 +191,19 @@ ai-shell config set SILENT_MODE=true
 Check the installed version with:
 
 ```bash
-ai-shell --version
+ai --version
 ```
 
 If it's not the [latest version](https://github.com/BuilderIO/ai-shell/tags), run:
 
 ```bash
 npm update -g @builder.io/ai-shell
+```
+
+Or just use AI shell:
+
+```bash
+ai update
 ```
 
 ## Common Issues
@@ -130,12 +224,12 @@ If you want to help fix a bug or implement a feature in [Issues](https://github.
 
 ## Credit
 
-- Thanks to Github Copilot for their amazing tools and the idea for this
+- Thanks to GitHub Copilot for their amazing tools and the idea for this
 - Thanks to Hassan and his work on [aicommits](https://github.com/Nutlope/aicommits) which inspired the workflow and some parts of the code and flows
 
 ## Community
 
-Come join the [Builder.io discord](https://discord.gg/EMx6e58xnw) and chat with us in the #ai-shell-general room
+Come join the [Builder.io discord](https://discord.gg/EMx6e58xnw) and chat with us in the #ai-shell room
 
 <br><br>
 

@@ -1,17 +1,20 @@
-import { OpenAIApi, Configuration } from 'openai';
+import { OpenAIApi, Configuration, ChatCompletionRequestMessage } from 'openai';
 import dedent from 'dedent';
 import { IncomingMessage } from 'http';
 import { KnownError } from './error';
 import { streamToIterable } from './stream-to-iterable';
 import { detectShell } from './os-detect';
-import { platform } from 'os';
 import type { AxiosError } from 'axios';
 import { streamToString } from './stream-to-string';
+import './replace-all-polyfill';
+import i18n from './i18n';
 
 const explainInSecondRequest = true;
 
-function getOpenAi(key: string) {
-  const openAi = new OpenAIApi(new Configuration({ apiKey: key }));
+function getOpenAi(key: string, apiEndpoint: string) {
+  const openAi = new OpenAIApi(
+    new Configuration({ apiKey: key, basePath: apiEndpoint })
+  );
   return openAi;
 }
 
@@ -19,10 +22,12 @@ export async function getScriptAndInfo({
   prompt,
   key,
   model,
+  apiEndpoint,
 }: {
   prompt: string;
   key: string;
   model?: string;
+  apiEndpoint: string;
 }) {
   const fullPrompt = getFullPrompt(prompt);
   const stream = await generateCompletion({
@@ -30,6 +35,7 @@ export async function getScriptAndInfo({
     number: 1,
     key,
     model,
+    apiEndpoint,
   });
   const iterableStream = streamToIterable(stream);
   const codeBlock = '```';
@@ -48,18 +54,22 @@ export async function generateCompletion({
   number = 1,
   key,
   model,
+  apiEndpoint,
 }: {
-  prompt: string;
+  prompt: string | ChatCompletionRequestMessage[];
   number?: number;
   model?: string;
   key: string;
+  apiEndpoint: string;
 }) {
-  const openAi = getOpenAi(key);
+  const openAi = getOpenAi(key, apiEndpoint);
   try {
     const completion = await openAi.createChatCompletion(
       {
         model: model || 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: prompt }],
+        messages: Array.isArray(prompt)
+          ? prompt
+          : [{ role: 'user', content: prompt }],
         n: Math.min(number, 10),
         stream: true,
       },
@@ -77,11 +87,19 @@ export async function generateCompletion({
     }
 
     const response = error.response;
-    const message =
-      response &&
-      JSON.parse(
-        await streamToString(response.data as unknown as IncomingMessage)
+    let message = response?.data as string | object | IncomingMessage;
+    if (response && message instanceof IncomingMessage) {
+      message = await streamToString(
+        response.data as unknown as IncomingMessage
       );
+      try {
+        // Handle if the message is JSON. It should be but occasionally will
+        // be HTML, so lets handle both
+        message = JSON.parse(message);
+      } catch (e) {
+        // Ignore
+      }
+    }
 
     const messageString = message && JSON.stringify(message, null, 2);
     if (response?.status === 429) {
@@ -91,7 +109,7 @@ export async function generateCompletion({
 
         You can activate billing here: https://platform.openai.com/account/billing/overview . Make sure to add a payment method if not under an active grant from OpenAI.
 
-        Full message from OpenAI: 
+        Full message from OpenAI:
       ` +
           '\n\n' +
           messageString +
@@ -100,7 +118,7 @@ export async function generateCompletion({
     } else if (response && message) {
       throw new KnownError(
         dedent`
-        Request to OpenAI failed with status ${response?.status}: 
+        Request to OpenAI failed with status ${response?.status}:
       ` +
           '\n\n' +
           messageString +
@@ -116,10 +134,12 @@ export async function getExplanation({
   script,
   key,
   model,
+  apiEndpoint,
 }: {
   script: string;
   key: string;
   model?: string;
+  apiEndpoint: string;
 }) {
   const prompt = getExplanationPrompt(script);
   const stream = await generateCompletion({
@@ -127,6 +147,7 @@ export async function getExplanation({
     key,
     number: 1,
     model,
+    apiEndpoint,
   });
   const iterableStream = streamToIterable(stream);
   return { readExplanation: readData(iterableStream, () => true) };
@@ -137,11 +158,13 @@ export async function getRevision({
   code,
   key,
   model,
+  apiEndpoint,
 }: {
   prompt: string;
   code: string;
   key: string;
   model?: string;
+  apiEndpoint: string;
 }) {
   const fullPrompt = getRevisionPrompt(prompt, code);
   const stream = await generateCompletion({
@@ -149,6 +172,7 @@ export async function getRevision({
     key,
     number: 1,
     model,
+    apiEndpoint,
   });
   const iterableStream = streamToIterable(stream);
   return {
@@ -156,7 +180,7 @@ export async function getRevision({
   };
 }
 
-const readData =
+export const readData =
   (
     iterableStream: AsyncGenerator<string, void>,
     startSignal: (content: string) => boolean,
@@ -211,37 +235,38 @@ const readData =
 
 function getExplanationPrompt(script: string) {
   return dedent`
-    ${explainScript}
+    ${explainScript} Please reply in ${i18n.getCurrentLanguagenName()}
 
     The script: ${script}
   `;
 }
 
-const shellDetails = dedent`
-  The target terminal is ${detectShell}.
-`;
+function getShellDetails() {
+  const shellDetails = detectShell();
+
+  return dedent`
+      The target shell is ${shellDetails}
+  `;
+}
+const shellDetails = getShellDetails();
 
 const explainScript = dedent`
-  Then please describe the script in plain english, step by step, what exactly it does.
-  Please describe succintly, use as few words as possible, do not be verbose. 
-  If there are multiple steps, please display them as a list.
+  Please provide a clear, concise description of the script, using minimal words. Outline the steps in a list format.
 `;
 
-function getOsType() {
-  const type = platform();
-  return type === 'darwin' ? 'Mac OS' : type;
+function getOperationSystemDetails() {
+  const os = require('@nexssp/os/legacy');
+  return os.name();
 }
-
 const generationDetails = dedent`
-  Please only reply with the single line command surrounded by 3 backticks. It should be able to be directly run in a terminal. Do not include any other text.
+    Only reply with the single line command surrounded by three backticks. It must be able to be directly run in the target shell. Do not include any other text.
 
-  Please make sure the script runs on ${getOsType()} operating system.
-`;
+    Make sure the command runs on ${getOperationSystemDetails()} operating system.
+  `;
 
-// TODO: gather the current OS (Windows, Mac, Linux) and add that to the prompt that it should support this system.
 function getFullPrompt(prompt: string) {
   return dedent`
-    I will give you a prompt to create a single line command that one can enter in a terminal and run, based on what is asked in the prompt.
+    Create a single line command that one can enter in a terminal and run, based on what is specified in the prompt.
 
     ${shellDetails}
 
@@ -255,7 +280,7 @@ function getFullPrompt(prompt: string) {
 
 function getRevisionPrompt(prompt: string, code: string) {
   return dedent`
-    Please update the following script based on what is asked in the following prompt.
+    Update the following script based on what is asked in the following prompt.
 
     The script: ${code}
 

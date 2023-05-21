@@ -1,43 +1,107 @@
-## 0.0.15
+## 0.1.23
 
-Stream responses
+- Add support for Android [#75](https://github.com/BuilderIO/ai-shell/pull/75)
 
-## 0.0.16
+## 0.1.22
 
-Take the current operating system into account
+- Fix a crash on linux [#64](https://github.com/BuilderIO/ai-shell/issues/64)
 
-## 0.0.17
+## 0.1.21
 
-Minor improvements to the UX of the revision flow
+- Fix a bug preventing initial configuration [#69](https://github.com/BuilderIO/ai-shell/issues/69)
 
-## 0.0.18
+## 0.1.20
 
-Better error handling
+- Multi language support [#62](https://github.com/BuilderIO/ai-shell/pull/62)
 
-## 0.1.0
+## 0.1.19
 
-Minor error message improvements
+- Support Azure keys
 
-## 0.1.1
+## 0.1.18
 
-Minor UX improvement ("AI Shell" vs "ai-shell")
+- Option to copy the generated script to the clipboard
 
-## 0.1.2
+## 0.1.15
 
-Improve error messaging
+- Fix chat mode to support chat history
 
-## 0.1.3
+## 0.1.14
 
-Improve error messaging, again
+- Adds chat mode
+- Fixes "ai update" to not eagerly capture
+- Improve operating system identification
 
-## 0.1.4
+## 0.1.13
 
-Improve error messaging, again again
+- Fix for using cloudflare proxy (fix streaming logic to handle partial chunks)
 
-## 0.1.5
+## 0.1.12
 
-Improve error messaging UX, again x3
+- Support custom API endpoints
+
+## 0.1.11
+
+- `ai update` command
+- Minor UX improvements and fixes
+
+## 0.1.10
+
+- Obfuscate API key from config UI
+
+## 0.1.9
+
+- Visual config UI (from `ai config ui`)
+
+## 0.1.8
+
+- Better error handling (handle streams and non streams, JSON and strings)
+
+## 0.1.7
+
+- Option to edit script before running
+- Fix error with String.prototype.replaceAll not existing
 
 ## 0.1.6
 
-Silent mode (skip explanation)
+- Silent mode (skip explanation)
+
+## 0.1.5
+
+- Improve error messaging UX, again x3
+
+## 0.1.4
+
+- Improve error messaging, again again
+
+## 0.1.3
+
+- Improve error messaging, again
+
+## 0.1.2
+
+- Improve error messaging
+
+## 0.1.1
+
+- Minor UX improvement ("AI Shell" vs "ai-shell")
+
+## 0.1.0
+
+- Minor error message improvements
+
+## 0.0.18
+
+- Better error handling
+
+## 0.0.17
+
+- Minor improvements to the UX of the revision flow
+
+## 0.0.16
+
+- Take the current operating system into account
+
+## 0.0.15
+
+- Stream responses
