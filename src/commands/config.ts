@@ -13,7 +13,9 @@ export default command(
   {
     name: 'config',
     parameters: ['[mode]', '[key=value...]'],
-    description: 'Configure the CLI',
+    help: {
+      description: 'Configure the CLI',
+    },
   },
   (argv) => {
     (async () => {
@@ -39,6 +41,10 @@ export default command(
         for (const key of keyValues) {
           if (hasOwn(config, key)) {
             console.log(`${key}=${config[key as keyof typeof config]}`);
+          } else {
+            throw new KnownError(
+              `${i18n.t('Invalid config property')}: ${key}`
+            );
           }
         }
         return;

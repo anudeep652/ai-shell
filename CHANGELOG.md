@@ -1,3 +1,37 @@
+## 1.0.7
+
+- Fix a bug causing completions to not display in some cases
+
+## 1.0.6
+
+- Fix for streaming data including the shell command name erroneously, causing the command to fail
+
+## 1.0.5
+
+- Fix using the configured model in all cases
+
+## 1.0.4
+
+- Improve `--help` menu descriptions
+
+## 1.0.3
+
+- Fix choosing custom models
+
+## 1.0.2
+
+- Add Turkish language support
+- Improve config UX (correctly `await` on setting configs)
+
+## 1.0.1
+
+- Fix a typo ("to to" -> "to") [#78](https://github.com/BuilderIO/ai-shell/pull/78)
+
+## 1.0.0
+
+- Overdue major version bump to signify the stability of this CLI
+- Add Indonesian language support
+
 ## 0.1.23
 
 - Add support for Android [#75](https://github.com/BuilderIO/ai-shell/pull/75)

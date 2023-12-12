@@ -50,7 +50,7 @@ async function getPrompt(prompt?: string) {
     {
       prompt: () =>
         p.text({
-          message: i18n.t('What would you like me to to do?'),
+          message: i18n.t('What would you like me to do?'),
           placeholder: `${i18n.t('e.g.')} ${sample(examples)}`,
           initialValue: prompt,
           defaultValue: i18n.t('Say hello'),
@@ -74,9 +74,7 @@ async function promptForRevision() {
     {
       prompt: () =>
         p.text({
-          message: i18n.t(
-            'What would you like me to to change in this script?'
-          ),
+          message: i18n.t('What would you like me to change in this script?'),
           placeholder: i18n.t('e.g. change the folder name'),
           validate: (value) => {
             if (!value) return i18n.t('Please enter a prompt.');
@@ -101,16 +99,9 @@ export async function prompt({
     OPENAI_KEY: key,
     SILENT_MODE,
     OPENAI_API_ENDPOINT: apiEndpoint,
+    MODEL: model,
   } = await getConfig();
   const skipCommandExplanation = silentMode || SILENT_MODE;
-
-  if (!key) {
-    throw new KnownError(
-      i18n.t(
-        'Please set your OpenAI API key via `ai config set OPENAI_KEY=<your token>`'
-      )
-    );
-  }
 
   console.log('');
   p.intro(`${cyan(`${projectName}`)}`);
@@ -121,6 +112,7 @@ export async function prompt({
   const { readInfo, readScript } = await getScriptAndInfo({
     prompt: thePrompt,
     key,
+    model,
     apiEndpoint,
   });
   spin.stop(`${i18n.t('Your script')}:`);
@@ -147,12 +139,13 @@ export async function prompt({
     }
   }
 
-  await runOrReviseFlow(script, key, apiEndpoint, silentMode);
+  await runOrReviseFlow(script, key, model, apiEndpoint, silentMode);
 }
 
 async function runOrReviseFlow(
   script: string,
   key: string,
+  model: string,
   apiEndpoint: string,
   silentMode?: boolean
 ) {
@@ -191,7 +184,7 @@ async function runOrReviseFlow(
         label: '🔁 ' + i18n.t('Revise'),
         hint: i18n.t('Give feedback via prompt and get a new result'),
         value: async () => {
-          await revisionFlow(script, key, apiEndpoint, silentMode);
+          await revisionFlow(script, key, model, apiEndpoint, silentMode);
         },
       },
       {
@@ -221,6 +214,7 @@ async function runOrReviseFlow(
 async function revisionFlow(
   currentScript: string,
   key: string,
+  model: string,
   apiEndpoint: string,
   silentMode?: boolean
 ) {
@@ -231,6 +225,7 @@ async function revisionFlow(
     prompt: revision,
     code: currentScript,
     key,
+    model,
     apiEndpoint,
   });
   spin.stop(`${i18n.t(`Your new script`)}:`);
@@ -247,6 +242,7 @@ async function revisionFlow(
     const { readExplanation } = await getExplanation({
       script,
       key,
+      model,
       apiEndpoint,
     });
 
@@ -258,7 +254,7 @@ async function revisionFlow(
     console.log(dim('•'));
   }
 
-  await runOrReviseFlow(script, key, apiEndpoint, silentMode);
+  await runOrReviseFlow(script, key, model, apiEndpoint, silentMode);
 }
 
 export const parseAssert = (name: string, condition: any, message: string) => {
